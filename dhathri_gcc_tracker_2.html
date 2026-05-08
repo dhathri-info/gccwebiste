@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dhathri.ae — GCC Website Project Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #1c2433; --border: #30363d;
+    --accent: #c8a951; --text: #e6edf3; --text-muted: #8b949e;
+    --green: #3fb950; --yellow: #d29922; --blue: #58a6ff;
+    --red: #f85149; --orange: #f0883e; --purple: #bc8cff;
+    --phase-dp: #58a6ff; --phase-du: #bc8cff; --phase-dv: #3fb950;
+    --phase-cc: #f0883e; --phase-tq: #ffa657; --phase-lp: #c8a951; --phase-pl: #79c0ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sora', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+  .topbar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+    height: 60px; position: sticky; top: 0; z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: #000; }
+  .logo-text { font-weight: 600; font-size: 15px; }
+  .logo-sub { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .phase-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: rgba(200,169,81,0.15); border: 1px solid var(--accent); color: var(--accent); padding: 4px 10px; border-radius: 20px; }
+  .topbar-btn { border: none; padding: 7px 16px; border-radius: 6px; font-family: 'Sora', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; transition: opacity 0.2s; }
+  .btn-gold { background: var(--accent); color: #000; }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .topbar-btn:hover { opacity: 0.85; }
+
+  /* ALERT BANNER */
+  .alert-banner {
+    background: rgba(248,81,73,0.07); border-bottom: 1px solid rgba(248,81,73,0.25);
+    padding: 10px 24px; display: none; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .alert-banner.visible { display: flex; }
+  .alert-icon { font-size: 15px; flex-shrink: 0; }
+  .alert-title { font-size: 12px; font-weight: 700; color: var(--red); text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0; }
+  .alert-chips { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+  .alert-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 10px; border-radius: 20px; cursor: pointer; border: 1px solid transparent; transition: filter 0.15s; }
+  .alert-chip.overdue { background: rgba(248,81,73,0.18); color: var(--red); border-color: rgba(248,81,73,0.3); }
+  .alert-chip.due-soon { background: rgba(240,136,62,0.18); color: var(--orange); border-color: rgba(240,136,62,0.3); }
+  .alert-chip:hover { filter: brightness(1.25); }
+  .alert-dismiss { margin-left: auto; font-size: 18px; color: var(--text-muted); cursor: pointer; background: none; border: none; line-height: 1; flex-shrink: 0; }
+  .alert-dismiss:hover { color: var(--text); }
+
+  .layout { display: flex; }
+
+  .sidebar {
+    width: 220px; min-height: calc(100vh - 60px); background: var(--surface);
+    border-right: 1px solid var(--border); padding: 20px 0; flex-shrink: 0;
+    position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto;
+  }
+  .sidebar-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); padding: 0 16px 8px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; font-size: 13px; color: var(--text-muted); }
+  .sidebar-item:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-item.active { border-left-color: var(--accent); background: rgba(200,169,81,0.08); color: var(--text); font-weight: 500; }
+  .sidebar-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .sidebar-count { margin-left: auto; font-size: 11px; font-family: 'JetBrains Mono', monospace; background: var(--surface2); padding: 2px 6px; border-radius: 10px; }
+  .sidebar-count.red { background: rgba(248,81,73,0.2); color: var(--red); }
+
+  .main { flex: 1; padding: 24px; overflow: hidden; }
+
+  .overview-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 28px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; }
+  .stat-value { font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+  .stat-sub { font-size: 12px; color: var(--text-muted); }
+  .progress-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+  .phases-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 28px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .section-title { font-size: 15px; font-weight: 600; }
+  .phase-row { display: grid; grid-template-columns: 170px 1fr 60px 110px; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .phase-name { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .phase-pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: right; color: var(--text-muted); }
+  .phase-dates { font-size: 11px; color: var(--text-muted); text-align: right; font-family: 'JetBrains Mono', monospace; }
+
+  .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); font-family: 'Sora', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+  .filter-btn.danger { border-color: rgba(248,81,73,0.4); color: var(--red); background: rgba(248,81,73,0.07); }
+  .filter-btn.danger.active { background: var(--red); border-color: var(--red); color: #fff; }
+  .search-box { margin-left: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 7px 12px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 13px; width: 200px; outline: none; transition: border-color 0.15s; }
+  .search-box::placeholder { color: var(--text-muted); }
+  .search-box:focus { border-color: var(--accent); }
+  .add-task-inline-btn { margin-left: 8px; background: var(--accent); color: #000; border: none; padding: 7px 14px; border-radius: 6px; font-family: 'Sora', sans-serif; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap; }
+
+  .task-table { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .table-header { display: grid; grid-template-columns: 80px 1fr 130px 120px 90px 120px 110px; padding: 12px 16px; background: var(--surface2); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); gap: 12px; }
+  .task-row { display: grid; grid-template-columns: 80px 1fr 130px 120px 90px 120px 110px; padding: 13px 16px; border-bottom: 1px solid var(--border); align-items: center; gap: 12px; transition: background 0.12s; cursor: pointer; }
+  .task-row:last-child { border-bottom: none; }
+  .task-row:hover { background: var(--surface2); }
+  .task-row.overdue-row { border-left: 3px solid var(--red); }
+  .task-row.duesoon-row { border-left: 3px solid var(--orange); }
+  .task-id { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text-muted); }
+  .task-name { font-size: 13px; font-weight: 500; }
+  .task-name small { display: block; font-size: 11px; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+  .status-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .status-completed { background: rgba(63,185,80,0.15); color: var(--green); }
+  .status-in-progress { background: rgba(88,166,255,0.15); color: var(--blue); }
+  .status-not-started { background: rgba(139,148,158,0.12); color: var(--text-muted); }
+  .status-blocked { background: rgba(248,81,73,0.15); color: var(--red); }
+  .status-review { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .priority-badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .priority-high { background: rgba(248,81,73,0.15); color: var(--red); }
+  .priority-medium { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .priority-low { background: rgba(63,185,80,0.15); color: var(--green); }
+  .phase-chip { display: inline-flex; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .due-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; display: inline-flex; flex-direction: column; }
+  .due-tag.overdue { color: var(--red); }
+  .due-tag.due-soon { color: var(--orange); }
+  .due-tag.normal { color: var(--text-muted); }
+  .assignee { font-size: 12px; color: var(--text-muted); }
+
+  .milestones-row { display: flex; gap: 12px; margin-bottom: 28px; overflow-x: auto; padding-bottom: 4px; }
+  .milestone-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; flex-shrink: 0; min-width: 155px; }
+  .milestone-card.done { border-color: var(--green); }
+  .milestone-name { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+  .milestone-date { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .milestone-status { font-size: 11px; margin-top: 6px; }
+
+  /* MODALS */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 200; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: 580px; max-height: 90vh; overflow-y: auto; padding: 28px; }
+  .modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+  .modal-title { font-size: 18px; font-weight: 600; }
+  .modal-sub { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .modal-close { background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; line-height: 1; }
+  .modal-close:hover { color: var(--text); }
+  .modal-field { margin-bottom: 16px; }
+  .modal-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+  .modal-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .modal-textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 13px; padding: 12px; resize: vertical; min-height: 80px; outline: none; transition: border-color 0.15s; }
+  .modal-textarea:focus { border-color: var(--accent); }
+  .modal-select, .modal-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 13px; padding: 10px 12px; outline: none; transition: border-color 0.15s; }
+  .modal-select:focus, .modal-input:focus { border-color: var(--accent); }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .btn-primary { background: var(--accent); color: #000; border: none; padding: 9px 20px; border-radius: 7px; font-family: 'Sora', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); padding: 9px 20px; border-radius: 7px; font-family: 'Sora', sans-serif; font-size: 13px; cursor: pointer; }
+  .btn-danger { background: rgba(248,81,73,0.12); color: var(--red); border: 1px solid rgba(248,81,73,0.3); padding: 9px 20px; border-radius: 7px; font-family: 'Sora', sans-serif; font-size: 13px; cursor: pointer; }
+
+  .due-callout { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+  .due-callout.overdue { background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3); color: var(--red); }
+  .due-callout.due-soon { background: rgba(240,136,62,0.1); border: 1px solid rgba(240,136,62,0.3); color: var(--orange); }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 8px; padding: 14px 18px; font-size: 13px; z-index: 300; transform: translateY(80px); opacity: 0; transition: all 0.3s ease; max-width: 320px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  @media (max-width: 1050px) {
+    .overview-grid { grid-template-columns: repeat(3, 1fr); }
+    .table-header, .task-row { grid-template-columns: 70px 1fr 110px 90px 100px; }
+    .col-phase2, .col-assignee { display: none; }
+    .sidebar { width: 185px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">D</div>
+    <div>
+      <div class="logo-text">Dhathri.ae · GCC Website</div>
+      <div class="logo-sub">Project Tracker · UAE · KSA · QA · KW · BH · OM</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="phase-badge" id="overall-pct-badge">2% Complete</span>
+    <button class="topbar-btn btn-outline" onclick="openAddTask()">+ Add Task</button>
+    <button class="topbar-btn btn-gold" onclick="handleShare()">⬆ Export Link</button>
+  </div>
+</div>
+
+<!-- ALERT BANNER -->
+<div class="alert-banner" id="alertBanner">
+  <span class="alert-icon">🚨</span>
+  <span class="alert-title">Action Required</span>
+  <div class="alert-chips" id="alertChips"></div>
+  <button class="alert-dismiss" onclick="dismissBanner()" title="Dismiss">×</button>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-label" style="margin-top:4px;">Views</div>
+    <div class="sidebar-item active" onclick="setView('all',this)">
+      <span>📋</span> All Tasks <span class="sidebar-count" id="count-all">52</span>
+    </div>
+    <div class="sidebar-item" onclick="setView('in-progress',this)">
+      <span>⚡</span> In Progress <span class="sidebar-count" id="count-inprogress">2</span>
+    </div>
+    <div class="sidebar-item" onclick="setView('completed',this)">
+      <span>✅</span> Completed <span class="sidebar-count" id="count-completed">1</span>
+    </div>
+    <div class="sidebar-item" onclick="setView('overdue',this)">
+      <span>🔴</span> Overdue <span class="sidebar-count red" id="count-overdue">0</span>
+    </div>
+    <div class="sidebar-item" onclick="setView('due-soon',this)">
+      <span>🟠</span> Due Soon <span class="sidebar-count" id="count-duesoon">0</span>
+    </div>
+
+    <div class="sidebar-label" style="margin-top:16px;">Phases</div>
+    <div class="sidebar-item" onclick="filterPhase('Discovery & Planning',this)">
+      <span class="sidebar-dot" style="background:var(--phase-dp)"></span> Discovery <span class="sidebar-count" id="pcount-dp">6</span>
+    </div>
+    <div class="sidebar-item" onclick="filterPhase('Design & UX/UI',this)">
+      <span class="sidebar-dot" style="background:var(--phase-du)"></span> Design <span class="sidebar-count" id="pcount-du">6</span>
+    </div>
+    <div class="sidebar-item" onclick="filterPhase('Development',this)">
+      <span class="sidebar-dot" style="background:var(--phase-dv)"></span> Development <span class="sidebar-count" id="pcount-dv">12</span>
+    </div>
+    <div class="sidebar-item" onclick="filterPhase('Content Creation',this)">
+      <span class="sidebar-dot" style="background:var(--phase-cc)"></span> Content <span class="sidebar-count" id="pcount-cc">6</span>
+    </div>
+    <div class="sidebar-item" onclick="filterPhase('Testing & QA',this)">
+      <span class="sidebar-dot" style="background:var(--phase-tq)"></span> Testing <span class="sidebar-count" id="pcount-tq">8</span>
+    </div>
+    <div class="sidebar-item" onclick="filterPhase('Launch Preparation',this)">
+      <span class="sidebar-dot" style="background:var(--phase-lp)"></span> Launch <span class="sidebar-count" id="pcount-lp">7</span>
+    </div>
+    <div class="sidebar-item" onclick="filterPhase('Post-Launch Support',this)">
+      <span class="sidebar-dot" style="background:var(--phase-pl)"></span> Post-Launch <span class="sidebar-count" id="pcount-pl">7</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- STATS -->
+    <div class="overview-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Tasks</div>
+        <div class="stat-value" style="color:var(--accent)" id="stat-total">52</div>
+        <div class="stat-sub">Across 7 phases</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value" style="color:var(--green)" id="stat-completed">1</div>
+        <div class="progress-bar"><div class="progress-fill" style="background:var(--green)" id="bar-completed"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">In Progress</div>
+        <div class="stat-value" style="color:var(--blue)" id="stat-inprogress">2</div>
+        <div class="progress-bar"><div class="progress-fill" style="background:var(--blue)" id="bar-inprogress"></div></div>
+      </div>
+      <div class="stat-card" id="stat-card-overdue">
+        <div class="stat-label">🔴 Overdue</div>
+        <div class="stat-value" style="color:var(--red)" id="stat-overdue">0</div>
+        <div class="stat-sub" id="stat-duesoon-sub">0 due within 7 days</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Not Started</div>
+        <div class="stat-value" style="color:var(--text-muted)" id="stat-notstarted">49</div>
+        <div class="stat-sub" id="stat-blocked-text">0 blocked</div>
+      </div>
+    </div>
+
+    <!-- MILESTONES -->
+    <div class="milestones-row" id="milestones-row"></div>
+
+    <!-- PHASE PROGRESS -->
+    <div class="phases-section">
+      <div class="section-header"><div class="section-title">Phase Progress</div></div>
+      <div id="phase-progress-rows"></div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="setStatusFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setStatusFilter('Not Started',this)">Not Started</button>
+      <button class="filter-btn" onclick="setStatusFilter('In Progress',this)">In Progress</button>
+      <button class="filter-btn" onclick="setStatusFilter('Completed',this)">Completed</button>
+      <button class="filter-btn" onclick="setStatusFilter('Blocked',this)">Blocked</button>
+      <button class="filter-btn danger" onclick="setStatusFilter('overdue-filter',this)">🔴 Overdue</button>
+      <input class="search-box" type="text" placeholder="🔍 Search tasks..." id="searchInput" oninput="renderTasks()">
+      <button class="add-task-inline-btn" onclick="openAddTask()">+ Add Task</button>
+    </div>
+
+    <!-- TASK TABLE -->
+    <div class="task-table">
+      <div class="table-header">
+        <div>ID</div><div>Task</div>
+        <div class="col-phase2">Phase</div>
+        <div>Status</div><div>Priority</div><div>Due Date</div>
+        <div class="col-assignee">Assigned To</div>
+      </div>
+      <div id="task-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT TASK MODAL -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-task-name"></div>
+        <div class="modal-sub" id="modal-task-id"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-due-callout"></div>
+    <div class="modal-field">
+      <div class="modal-label">Description</div>
+      <div id="modal-description" style="font-size:13px;color:var(--text-muted);line-height:1.55;"></div>
+    </div>
+    <div class="modal-2col">
+      <div><div class="modal-label">Phase</div><div id="modal-phase"></div></div>
+      <div><div class="modal-label">Priority</div><div id="modal-priority"></div></div>
+      <div><div class="modal-label">Start Date</div><input class="modal-input" id="modal-start" type="date"></div>
+      <div><div class="modal-label">Due Date</div><input class="modal-input" id="modal-due" type="date"></div>
+    </div>
+    <div class="modal-2col">
+      <div><div class="modal-label">Assigned To</div><input class="modal-input" id="modal-assignee" placeholder="Enter name..."></div>
+      <div><div class="modal-label">Status</div>
+        <select class="modal-select" id="modal-status">
+          <option>Not Started</option><option>In Progress</option>
+          <option>Review</option><option>Completed</option><option>Blocked</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Agency Notes / Update</div>
+      <textarea class="modal-textarea" id="modal-notes" placeholder="Add progress notes, blockers, or updates..."></textarea>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Dependencies</div>
+      <div id="modal-deps" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" onclick="deleteTask()">🗑 Delete</button>
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveTask()">Save Update</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TASK MODAL -->
+<div class="modal-overlay" id="addTaskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Add New Task</div>
+        <div class="modal-sub">A new Task ID will be auto-generated for the selected phase</div>
+      </div>
+      <button class="modal-close" onclick="closeAddModal()">×</button>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Task Name *</div>
+      <input class="modal-input" id="new-name" placeholder="e.g. Arabic SEO Audit">
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Description</div>
+      <textarea class="modal-textarea" id="new-desc" placeholder="What needs to be done?" style="min-height:65px"></textarea>
+    </div>
+    <div class="modal-2col">
+      <div>
+        <div class="modal-label">Phase *</div>
+        <select class="modal-select" id="new-phase">
+          <option>Discovery & Planning</option><option>Design & UX/UI</option>
+          <option>Development</option><option>Content Creation</option>
+          <option>Testing & QA</option><option>Launch Preparation</option>
+          <option>Post-Launch Support</option>
+        </select>
+      </div>
+      <div>
+        <div class="modal-label">Priority</div>
+        <select class="modal-select" id="new-priority">
+          <option>High</option><option selected>Medium</option><option>Low</option>
+        </select>
+      </div>
+      <div>
+        <div class="modal-label">Start Date *</div>
+        <input class="modal-input" id="new-start" type="date">
+      </div>
+      <div>
+        <div class="modal-label">Due Date *</div>
+        <input class="modal-input" id="new-due" type="date">
+      </div>
+    </div>
+    <div class="modal-2col">
+      <div>
+        <div class="modal-label">Assigned To</div>
+        <input class="modal-input" id="new-assignee" placeholder="Name or team">
+      </div>
+      <div>
+        <div class="modal-label">Status</div>
+        <select class="modal-select" id="new-status">
+          <option>Not Started</option><option>In Progress</option>
+          <option>Review</option><option>Completed</option><option>Blocked</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Dependencies (Task IDs, comma separated)</div>
+      <input class="modal-input" id="new-deps" placeholder="e.g. DP-01, DU-02">
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Notes</div>
+      <textarea class="modal-textarea" id="new-notes" placeholder="Any initial notes..." style="min-height:55px"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeAddModal()">Cancel</button>
+      <button class="btn-primary" onclick="addTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+
+const PHASE_COLORS = {'Discovery & Planning':'var(--phase-dp)','Design & UX/UI':'var(--phase-du)','Development':'var(--phase-dv)','Content Creation':'var(--phase-cc)','Testing & QA':'var(--phase-tq)','Launch Preparation':'var(--phase-lp)','Post-Launch Support':'var(--phase-pl)'};
+const PHASE_SHORT = {'Discovery & Planning':'Discovery','Design & UX/UI':'Design','Development':'Dev','Content Creation':'Content','Testing & QA':'QA','Launch Preparation':'Launch','Post-Launch Support':'Post-Launch'};
+const PHASE_PREFIX = {'Discovery & Planning':'DP','Design & UX/UI':'DU','Development':'DV','Content Creation':'CC','Testing & QA':'TQ','Launch Preparation':'LP','Post-Launch Support':'PL'};
+
+function excelToDate(s){ return new Date((s-25569)*86400*1000); }
+function excelDate(s){ if(!s) return '—'; return excelToDate(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}); }
+function dateToExcel(str){ if(!str) return 0; return Math.round(new Date(str).getTime()/86400000+25569); }
+function getDueDays(s){ if(!s) return null; const d=excelToDate(s); d.setHours(0,0,0,0); return Math.round((d-TODAY)/86400000); }
+function isOverdue(t){ return t.status!=='Completed' && getDueDays(t.due)!==null && getDueDays(t.due)<0; }
+function isDueSoon(t){ const d=getDueDays(t.due); return t.status!=='Completed' && d!==null && d>=0 && d<=7; }
+function statusClass(s){ return {Completed:'status-completed','In Progress':'status-in-progress',Blocked:'status-blocked',Review:'status-review'}[s]||'status-not-started'; }
+function priorityClass(p){ return {High:'priority-high',Medium:'priority-medium',Low:'priority-low'}[p]||'priority-low'; }
+
+const RAW = [
+  {id:'DP-01',name:'Kick-off Meeting',phase:'Discovery & Planning',desc:'Initial project briefing and alignment',assignee:'Sarah Al-Mansouri',start:46149,due:46149,status:'Completed',priority:'High',deps:'',notes:''},
+  {id:'DP-02',name:'Market Research - GCC Audience',phase:'Discovery & Planning',desc:'Research GCC market preferences and cultural considerations',assignee:'Marketing Team',start:46150,due:46154,status:'In Progress',priority:'High',deps:'DP-01',notes:''},
+  {id:'DP-03',name:'Competitor Analysis',phase:'Discovery & Planning',desc:'Analyze competitor websites in GCC healthcare market',assignee:'Marketing Team',start:46150,due:46154,status:'In Progress',priority:'Medium',deps:'DP-01',notes:''},
+  {id:'DP-04',name:'Requirements Gathering',phase:'Discovery & Planning',desc:'Document technical and business requirements',assignee:'Project Manager',start:46152,due:46156,status:'Not Started',priority:'High',deps:'DP-02',notes:''},
+  {id:'DP-05',name:'Content Strategy & Sitemap',phase:'Discovery & Planning',desc:'Define site structure and content plan (Arabic/English)',assignee:'Content Lead',start:46155,due:46159,status:'Not Started',priority:'High',deps:'DP-04',notes:''},
+  {id:'DP-06',name:'Technical Architecture Planning',phase:'Discovery & Planning',desc:'Define tech stack, hosting, CMS selection',assignee:'Tech Lead',start:46157,due:46162,status:'Not Started',priority:'High',deps:'DP-04',notes:''},
+  {id:'DU-01',name:'Wireframe Creation - Key Pages',phase:'Design & UX/UI',desc:'Create wireframes for homepage, product pages, checkout',assignee:'UX Designer',start:46163,due:46170,status:'Not Started',priority:'High',deps:'DP-05',notes:''},
+  {id:'DU-02',name:'UI Design - Homepage (Arabic/English)',phase:'Design & UX/UI',desc:'Design bilingual homepage with GCC cultural elements',assignee:'UI Designer',start:46171,due:46176,status:'Not Started',priority:'High',deps:'DU-01',notes:''},
+  {id:'DU-03',name:'UI Design - Product Pages',phase:'Design & UX/UI',desc:'Design product catalog and detail pages',assignee:'UI Designer',start:46177,due:46180,status:'Not Started',priority:'High',deps:'DU-02',notes:''},
+  {id:'DU-04',name:'UI Design - E-commerce Flow',phase:'Design & UX/UI',desc:'Design cart, checkout, payment pages',assignee:'UI Designer',start:46181,due:46183,status:'Not Started',priority:'High',deps:'DU-03',notes:''},
+  {id:'DU-05',name:'Brand Guidelines for Digital',phase:'Design & UX/UI',desc:'Adapt brand identity for web',assignee:'Brand Designer',start:46167,due:46172,status:'Not Started',priority:'Medium',deps:'DP-01',notes:''},
+  {id:'DU-06',name:'Design Review & Approval',phase:'Design & UX/UI',desc:'Client and stakeholder review of all designs',assignee:'Project Manager',start:46182,due:46183,status:'Not Started',priority:'High',deps:'DU-04',notes:''},
+  {id:'DV-01',name:'Dev Environment Setup',phase:'Development',desc:'Setup dev, staging, production environments',assignee:'DevOps Lead',start:46184,due:46186,status:'Not Started',priority:'High',deps:'DP-06',notes:''},
+  {id:'DV-02',name:'Frontend Dev - Homepage',phase:'Development',desc:'Build responsive homepage (Arabic RTL + English LTR)',assignee:'Frontend Dev',start:46187,due:46194,status:'Not Started',priority:'High',deps:'DV-01,DU-06',notes:''},
+  {id:'DV-03',name:'Frontend Dev - Product Catalog',phase:'Development',desc:'Build product listing and filtering',assignee:'Frontend Dev',start:46195,due:46201,status:'Not Started',priority:'High',deps:'DV-02',notes:''},
+  {id:'DV-04',name:'Frontend Dev - E-commerce',phase:'Development',desc:'Build cart, checkout, payment integration',assignee:'Frontend Dev',start:46202,due:46209,status:'Not Started',priority:'High',deps:'DV-03',notes:''},
+  {id:'DV-05',name:'Backend Dev - CMS Setup',phase:'Development',desc:'Setup and configure CMS with multilingual support',assignee:'Backend Dev',start:46187,due:46193,status:'Not Started',priority:'High',deps:'DV-01',notes:''},
+  {id:'DV-06',name:'Backend Dev - Product Database',phase:'Development',desc:'Build product management system',assignee:'Backend Dev',start:46194,due:46201,status:'Not Started',priority:'High',deps:'DV-05',notes:''},
+  {id:'DV-07',name:'Backend Dev - User Accounts',phase:'Development',desc:'Build customer registration and login',assignee:'Backend Dev',start:46202,due:46208,status:'Not Started',priority:'High',deps:'DV-06',notes:''},
+  {id:'DV-08',name:'Payment Gateway Integration',phase:'Development',desc:'Integrate GCC payment methods (card, wallet, COD)',assignee:'Backend Dev',start:46209,due:46213,status:'Not Started',priority:'High',deps:'DV-07',notes:''},
+  {id:'DV-09',name:'Shipping Integration',phase:'Development',desc:'Integrate regional shipping providers',assignee:'Backend Dev',start:46214,due:46217,status:'Not Started',priority:'Medium',deps:'DV-08',notes:''},
+  {id:'DV-10',name:'Arabic Language Implementation',phase:'Development',desc:'Full RTL support, Arabic fonts, translation integration',assignee:'Frontend Dev',start:46210,due:46215,status:'Not Started',priority:'High',deps:'DV-04',notes:''},
+  {id:'DV-11',name:'SEO Implementation',phase:'Development',desc:'Implement SEO best practices, meta tags, structured data',assignee:'SEO Specialist',start:46216,due:46221,status:'Not Started',priority:'Medium',deps:'DV-10',notes:''},
+  {id:'DV-12',name:'Analytics Integration',phase:'Development',desc:'Setup Google Analytics, heatmaps, conversion tracking',assignee:'Developer',start:46220,due:46223,status:'Not Started',priority:'Medium',deps:'DV-11',notes:''},
+  {id:'CC-01',name:'Product Photography',phase:'Content Creation',desc:'Professional product photos for catalog',assignee:'Content Team',start:46188,due:46198,status:'Not Started',priority:'High',deps:'DU-06',notes:''},
+  {id:'CC-02',name:'Arabic Content Writing',phase:'Content Creation',desc:'Write all Arabic website copy',assignee:'Arabic Copywriter',start:46193,due:46208,status:'Not Started',priority:'High',deps:'DP-05',notes:''},
+  {id:'CC-03',name:'English Content Writing',phase:'Content Creation',desc:'Write all English website copy',assignee:'English Copywriter',start:46193,due:46208,status:'Not Started',priority:'High',deps:'DP-05',notes:''},
+  {id:'CC-04',name:'Product Descriptions (Bilingual)',phase:'Content Creation',desc:'Write detailed product descriptions',assignee:'Copywriter',start:46199,due:46211,status:'Not Started',priority:'High',deps:'CC-01',notes:''},
+  {id:'CC-05',name:'Video Content Creation',phase:'Content Creation',desc:'Create brand and product videos',assignee:'Video Team',start:46201,due:46215,status:'Not Started',priority:'Medium',deps:'CC-01',notes:''},
+  {id:'CC-06',name:'Content Upload & QA',phase:'Content Creation',desc:'Upload all content to CMS and verify',assignee:'Content Manager',start:46212,due:46218,status:'Not Started',priority:'High',deps:'CC-04',notes:''},
+  {id:'TQ-01',name:'Functional Testing',phase:'Testing & QA',desc:'Test all features and user flows',assignee:'QA Lead',start:46224,due:46228,status:'Not Started',priority:'High',deps:'DV-12,CC-06',notes:''},
+  {id:'TQ-02',name:'Cross-Browser Testing',phase:'Testing & QA',desc:'Test on Chrome, Safari, Firefox, Edge',assignee:'QA Team',start:46229,due:46231,status:'Not Started',priority:'High',deps:'TQ-01',notes:''},
+  {id:'TQ-03',name:'Mobile Responsiveness Testing',phase:'Testing & QA',desc:'Test on iOS and Android devices',assignee:'QA Team',start:46229,due:46231,status:'Not Started',priority:'High',deps:'TQ-01',notes:''},
+  {id:'TQ-04',name:'Arabic/RTL Testing',phase:'Testing & QA',desc:'Verify all Arabic content displays correctly',assignee:'QA Team',start:46232,due:46234,status:'Not Started',priority:'High',deps:'TQ-02',notes:''},
+  {id:'TQ-05',name:'Performance Testing',phase:'Testing & QA',desc:'Test page load speeds and optimization',assignee:'DevOps',start:46232,due:46234,status:'Not Started',priority:'High',deps:'TQ-01',notes:''},
+  {id:'TQ-06',name:'Security Testing',phase:'Testing & QA',desc:'Test for vulnerabilities, SSL, data protection',assignee:'Security Team',start:46235,due:46237,status:'Not Started',priority:'High',deps:'TQ-05',notes:''},
+  {id:'TQ-07',name:'Payment Testing',phase:'Testing & QA',desc:'Test all payment methods and currencies',assignee:'QA Lead',start:46235,due:46237,status:'Not Started',priority:'High',deps:'TQ-01',notes:''},
+  {id:'TQ-08',name:'User Acceptance Testing (UAT)',phase:'Testing & QA',desc:'Client testing and feedback',assignee:'Project Manager',start:46238,due:46239,status:'Not Started',priority:'High',deps:'TQ-07',notes:''},
+  {id:'LP-01',name:'Production Server Setup',phase:'Launch Preparation',desc:'Configure production hosting environment',assignee:'DevOps',start:46240,due:46242,status:'Not Started',priority:'High',deps:'TQ-08',notes:''},
+  {id:'LP-02',name:'SSL Certificate Installation',phase:'Launch Preparation',desc:'Install and configure SSL certificate',assignee:'DevOps',start:46242,due:46243,status:'Not Started',priority:'High',deps:'LP-01',notes:''},
+  {id:'LP-03',name:'Domain & DNS Configuration',phase:'Launch Preparation',desc:'Configure dhathri.ae domain and DNS',assignee:'DevOps',start:46243,due:46244,status:'Not Started',priority:'High',deps:'LP-02',notes:''},
+  {id:'LP-04',name:'Final Content Review',phase:'Launch Preparation',desc:'Final review of all content and legal pages',assignee:'Content Manager',start:46244,due:46245,status:'Not Started',priority:'High',deps:'TQ-08',notes:''},
+  {id:'LP-05',name:'Backup & Recovery Setup',phase:'Launch Preparation',desc:'Configure automated backups',assignee:'DevOps',start:46245,due:46246,status:'Not Started',priority:'Medium',deps:'LP-01',notes:''},
+  {id:'LP-06',name:'Launch Checklist Completion',phase:'Launch Preparation',desc:'Complete pre-launch checklist',assignee:'Project Manager',start:46247,due:46248,status:'Not Started',priority:'High',deps:'LP-05',notes:''},
+  {id:'LP-07',name:'Go Live 🚀',phase:'Launch Preparation',desc:'Deploy website to production',assignee:'Tech Lead',start:46249,due:46249,status:'Not Started',priority:'High',deps:'LP-06',notes:''},
+  {id:'PL-01',name:'Launch Monitoring - Day 1',phase:'Post-Launch Support',desc:'Monitor site performance and issues',assignee:'DevOps',start:46249,due:46249,status:'Not Started',priority:'High',deps:'LP-07',notes:''},
+  {id:'PL-02',name:'Bug Fixes - Week 1',phase:'Post-Launch Support',desc:'Address any post-launch bugs',assignee:'Dev Team',start:46250,due:46256,status:'Not Started',priority:'High',deps:'PL-01',notes:''},
+  {id:'PL-03',name:'Performance Optimization',phase:'Post-Launch Support',desc:'Optimize based on real user data',assignee:'DevOps',start:46257,due:46263,status:'Not Started',priority:'Medium',deps:'PL-02',notes:''},
+  {id:'PL-04',name:'Analytics Review',phase:'Post-Launch Support',desc:'Review first week analytics',assignee:'Marketing',start:46257,due:46259,status:'Not Started',priority:'Medium',deps:'PL-01',notes:''},
+  {id:'PL-05',name:'User Feedback Collection',phase:'Post-Launch Support',desc:'Gather and analyze user feedback',assignee:'Product Manager',start:46254,due:46270,status:'Not Started',priority:'Medium',deps:'PL-01',notes:''},
+  {id:'PL-06',name:'SEO Monitoring',phase:'Post-Launch Support',desc:'Monitor search rankings and indexing',assignee:'SEO Specialist',start:46259,due:46275,status:'Not Started',priority:'Medium',deps:'PL-04',notes:''},
+  {id:'PL-07',name:'Handover & Documentation',phase:'Post-Launch Support',desc:'Complete handover to client team',assignee:'Project Manager',start:46275,due:46280,status:'Not Started',priority:'High',deps:'PL-06',notes:''},
+];
+
+const MILESTONES = [
+  {name:'Project Kickoff',serial:46149,status:'Completed'},{name:'Requirements Sign-off',serial:46162,status:'Pending'},
+  {name:'Design Approval',serial:46183,status:'Pending'},{name:'Development Freeze',serial:46223,status:'Pending'},
+  {name:'Content Complete',serial:46218,status:'Pending'},{name:'UAT Sign-off',serial:46239,status:'Pending'},
+  {name:'Go-Live',serial:46249,status:'Pending'},{name:'Project Handover',serial:46280,status:'Pending'},
+];
+
+// State
+let tasks = JSON.parse(localStorage.getItem('dhathri_v3')||'null') || RAW.map(t=>({...t}));
+let currentView='all', currentPhaseFilter=null, currentStatusFilter='all', currentTaskIdx=null, bannerDismissed=false;
+
+function save(){ localStorage.setItem('dhathri_v3',JSON.stringify(tasks)); }
+
+// --- ALERT BANNER ---
+function renderBanner(){
+  if(bannerDismissed) return;
+  const ov=tasks.filter(isOverdue), sn=tasks.filter(isDueSoon);
+  if(!ov.length&&!sn.length) return;
+  document.getElementById('alertBanner').classList.add('visible');
+  document.getElementById('alertChips').innerHTML=
+    ov.map(t=>`<span class="alert-chip overdue" onclick="jumpTo('${t.id}')">${t.id} · ${t.name.slice(0,18)} · ${Math.abs(getDueDays(t.due))}d overdue</span>`).join('')+
+    sn.map(t=>{const d=getDueDays(t.due);return`<span class="alert-chip due-soon" onclick="jumpTo('${t.id}')">${t.id} · ${t.name.slice(0,18)} · ${d===0?'today':d+'d left'}</span>`;}).join('');
+}
+function dismissBanner(){ bannerDismissed=true; document.getElementById('alertBanner').classList.remove('visible'); }
+function jumpTo(id){ const i=tasks.findIndex(t=>t.id===id); if(i>=0) openModal(i); }
+
+// --- STATS ---
+function updateStats(){
+  const comp=tasks.filter(t=>t.status==='Completed').length;
+  const inp=tasks.filter(t=>t.status==='In Progress').length;
+  const blk=tasks.filter(t=>t.status==='Blocked').length;
+  const ns=tasks.filter(t=>t.status==='Not Started').length;
+  const ov=tasks.filter(isOverdue).length;
+  const sn=tasks.filter(isDueSoon).length;
+  const tot=tasks.length;
+  document.getElementById('stat-total').textContent=tot;
+  document.getElementById('stat-completed').textContent=comp;
+  document.getElementById('stat-inprogress').textContent=inp;
+  document.getElementById('stat-notstarted').textContent=ns;
+  document.getElementById('stat-overdue').textContent=ov;
+  document.getElementById('stat-blocked-text').textContent=blk+' blocked';
+  document.getElementById('stat-duesoon-sub').textContent=sn+' due within 7 days';
+  document.getElementById('bar-completed').style.width=(comp/tot*100)+'%';
+  document.getElementById('bar-inprogress').style.width=(inp/tot*100)+'%';
+  document.getElementById('count-all').textContent=tot;
+  document.getElementById('count-inprogress').textContent=inp;
+  document.getElementById('count-completed').textContent=comp;
+  document.getElementById('count-overdue').textContent=ov;
+  document.getElementById('count-duesoon').textContent=sn;
+  document.getElementById('overall-pct-badge').textContent=Math.round(comp/tot*100)+'% Complete';
+  if(ov>0){ document.getElementById('stat-card-overdue').style.borderColor='rgba(248,81,73,0.55)'; }
+  else { document.getElementById('stat-card-overdue').style.borderColor=''; }
+  const pm={'Discovery & Planning':'dp','Design & UX/UI':'du','Development':'dv','Content Creation':'cc','Testing & QA':'tq','Launch Preparation':'lp','Post-Launch Support':'pl'};
+  Object.entries(pm).forEach(([ph,k])=>{ const el=document.getElementById('pcount-'+k); if(el) el.textContent=tasks.filter(t=>t.phase===ph).length; });
+}
+
+// --- FILTER ---
+function filtered(){
+  let list=tasks;
+  if(currentView==='in-progress') list=list.filter(t=>t.status==='In Progress');
+  else if(currentView==='completed') list=list.filter(t=>t.status==='Completed');
+  else if(currentView==='overdue') list=list.filter(isOverdue);
+  else if(currentView==='due-soon') list=list.filter(isDueSoon);
+  if(currentPhaseFilter) list=list.filter(t=>t.phase===currentPhaseFilter);
+  if(currentStatusFilter==='overdue-filter') list=list.filter(isOverdue);
+  else if(currentStatusFilter!=='all') list=list.filter(t=>t.status===currentStatusFilter);
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  if(q) list=list.filter(t=>t.name.toLowerCase().includes(q)||t.id.toLowerCase().includes(q)||t.assignee.toLowerCase().includes(q));
+  return list;
+}
+
+// --- RENDER TASKS ---
+function renderTasks(){
+  const list=filtered();
+  const el=document.getElementById('task-list');
+  if(!list.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">🔍</div><div>No tasks match your filter</div></div>'; return; }
+  el.innerHTML=list.map(t=>{
+    const idx=tasks.findIndex(x=>x.id===t.id);
+    const color=PHASE_COLORS[t.phase];
+    const days=getDueDays(t.due);
+    const ov=isOverdue(t), sn=isDueSoon(t);
+    let dueHtml,rowCls='';
+    if(ov){
+      dueHtml=`<span class="due-tag overdue">🔴 ${excelDate(t.due)}<small style="font-size:10px;">${Math.abs(days)}d overdue</small></span>`;
+      rowCls='overdue-row';
+    } else if(sn){
+      dueHtml=`<span class="due-tag due-soon">🟠 ${excelDate(t.due)}<small style="font-size:10px;">${days===0?'Today':days+'d left'}</small></span>`;
+      rowCls='duesoon-row';
+    } else {
+      dueHtml=`<span class="due-tag normal">${excelDate(t.due)}</span>`;
+    }
+    return `<div class="task-row ${rowCls}" onclick="openModal(${idx})">
+      <div class="task-id">${t.id}</div>
+      <div class="task-name">${t.name}<small>${t.notes?'💬 '+t.notes.slice(0,44)+'…':t.desc.slice(0,54)}</small></div>
+      <div class="col-phase2"><span class="phase-chip" style="background:${color}22;color:${color}">${PHASE_SHORT[t.phase]}</span></div>
+      <div><span class="status-badge ${statusClass(t.status)}">${t.status}</span></div>
+      <div><span class="priority-badge ${priorityClass(t.priority)}">${t.priority}</span></div>
+      <div>${dueHtml}</div>
+      <div class="assignee col-assignee">${t.assignee||'—'}</div>
+    </div>`;
+  }).join('');
+}
+
+// --- PHASE PROGRESS ---
+function renderPhase(){
+  const phases=[...new Set(RAW.map(t=>t.phase))];
+  document.getElementById('phase-progress-rows').innerHTML=phases.map(ph=>{
+    const pt=tasks.filter(t=>t.phase===ph); if(!pt.length) return '';
+    const done=pt.filter(t=>t.status==='Completed').length;
+    const pct=Math.round(done/pt.length*100);
+    const color=PHASE_COLORS[ph];
+    const minS=Math.min(...pt.map(t=>t.start).filter(Boolean));
+    const maxS=Math.max(...pt.map(t=>t.due).filter(Boolean));
+    return `<div class="phase-row">
+      <div class="phase-name"><span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0"></span>${ph}</div>
+      <div><div class="progress-bar" style="height:8px"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div></div>
+      <div class="phase-pct">${pct}%</div>
+      <div class="phase-dates">${excelDate(minS)} – ${excelDate(maxS)}</div>
+    </div>`;
+  }).join('');
+}
+
+// --- MILESTONES ---
+function renderMilestones(){
+  document.getElementById('milestones-row').innerHTML=MILESTONES.map(m=>{
+    const done=m.status==='Completed';
+    const d=getDueDays(m.serial);
+    let sub=done?'✅ Done':'⏳ Pending', sty='';
+    if(!done&&d!==null&&d<0){ sub=`🔴 ${Math.abs(d)}d overdue`; sty='border-color:rgba(248,81,73,0.5)'; }
+    else if(!done&&d!==null&&d<=7){ sub=`🟠 ${d===0?'Today':d+'d left'}`; sty='border-color:rgba(240,136,62,0.5)'; }
+    return `<div class="milestone-card ${done?'done':''}" style="${sty}">
+      <div class="milestone-name">${m.name}</div>
+      <div class="milestone-date">${excelDate(m.serial)}</div>
+      <div class="milestone-status" style="color:${done?'var(--green)':'var(--text-muted)'}">${sub}</div>
+    </div>`;
+  }).join('');
+}
+
+// --- NAV ---
+function setView(v,el){ currentView=v; currentPhaseFilter=null; document.querySelectorAll('.sidebar-item').forEach(x=>x.classList.remove('active')); el.classList.add('active'); renderTasks(); }
+function filterPhase(ph,el){ currentView='all'; currentPhaseFilter=ph; document.querySelectorAll('.sidebar-item').forEach(x=>x.classList.remove('active')); el.classList.add('active'); renderTasks(); }
+function setStatusFilter(s,el){ currentStatusFilter=s; document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active')); el.classList.add('active'); renderTasks(); }
+
+// --- EDIT MODAL ---
+function openModal(idx){
+  currentTaskIdx=idx; const t=tasks[idx];
+  document.getElementById('modal-task-name').textContent=t.name;
+  document.getElementById('modal-task-id').textContent=t.id+' · '+t.phase;
+  document.getElementById('modal-description').textContent=t.desc;
+  document.getElementById('modal-phase').innerHTML=`<span class="phase-chip" style="background:${PHASE_COLORS[t.phase]}22;color:${PHASE_COLORS[t.phase]}">${t.phase}</span>`;
+  document.getElementById('modal-priority').innerHTML=`<span class="priority-badge ${priorityClass(t.priority)}">${t.priority}</span>`;
+  // Populate editable date inputs (convert Excel serial → YYYY-MM-DD)
+  function serialToISO(s){ if(!s) return ''; const d=excelToDate(s); return d.toISOString().split('T')[0]; }
+  document.getElementById('modal-start').value=serialToISO(t.start);
+  document.getElementById('modal-due').value=serialToISO(t.due);
+  document.getElementById('modal-assignee').value=t.assignee||'';
+  document.getElementById('modal-status').value=t.status;
+  document.getElementById('modal-notes').value=t.notes||'';
+  document.getElementById('modal-deps').textContent=t.deps||'None';
+  const days=getDueDays(t.due);
+  const co=document.getElementById('modal-due-callout');
+  if(isOverdue(t)) co.innerHTML=`<div class="due-callout overdue">🚨 This task is <strong>${Math.abs(days)} day${Math.abs(days)!==1?'s':''} overdue.</strong> Please update status or escalate to the agency.</div>`;
+  else if(isDueSoon(t)) co.innerHTML=`<div class="due-callout due-soon">⏰ Due ${days===0?'<strong>today</strong>':`in <strong>${days} day${days!==1?'s':''}</strong>`} — make sure the agency is on track.</div>`;
+  else co.innerHTML='';
+  document.getElementById('taskModal').classList.add('open');
+}
+function closeModal(){ document.getElementById('taskModal').classList.remove('open'); currentTaskIdx=null; }
+function saveTask(){
+  if(currentTaskIdx===null) return;
+  const startVal=document.getElementById('modal-start').value;
+  const dueVal=document.getElementById('modal-due').value;
+  if(!startVal||!dueVal){ toast('⚠️ Start and due dates are required','warn'); return; }
+  tasks[currentTaskIdx].start=dateToExcel(startVal);
+  tasks[currentTaskIdx].due=dateToExcel(dueVal);
+  tasks[currentTaskIdx].assignee=document.getElementById('modal-assignee').value;
+  tasks[currentTaskIdx].status=document.getElementById('modal-status').value;
+  tasks[currentTaskIdx].notes=document.getElementById('modal-notes').value;
+  save(); closeModal(); refresh(); toast('✅ Task updated successfully');
+}
+function deleteTask(){
+  if(currentTaskIdx===null) return;
+  const t=tasks[currentTaskIdx];
+  if(!confirm(`Delete "${t.name}" (${t.id})? This cannot be undone.`)) return;
+  tasks.splice(currentTaskIdx,1); save(); closeModal(); refresh(); toast('🗑 Task deleted');
+}
+
+// --- ADD TASK MODAL ---
+function openAddTask(){
+  const d=TODAY.toISOString().split('T')[0];
+  ['new-name','new-desc','new-assignee','new-deps','new-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('new-phase').value='Discovery & Planning';
+  document.getElementById('new-priority').value='Medium';
+  document.getElementById('new-status').value='Not Started';
+  document.getElementById('new-start').value=d;
+  document.getElementById('new-due').value=d;
+  document.getElementById('addTaskModal').classList.add('open');
+}
+function closeAddModal(){ document.getElementById('addTaskModal').classList.remove('open'); }
+function addTask(){
+  const name=document.getElementById('new-name').value.trim();
+  if(!name){ toast('⚠️ Task name is required','warn'); return; }
+  const startStr=document.getElementById('new-start').value;
+  const dueStr=document.getElementById('new-due').value;
+  if(!startStr||!dueStr){ toast('⚠️ Start and due dates required','warn'); return; }
+  const phase=document.getElementById('new-phase').value;
+  const pfx=PHASE_PREFIX[phase]||'XX';
+  const nums=tasks.filter(t=>t.id.startsWith(pfx+'-')).map(t=>parseInt(t.id.split('-')[1])||0);
+  const next=(nums.length?Math.max(...nums):0)+1;
+  const newId=`${pfx}-${String(next).padStart(2,'0')}`;
+  tasks.push({
+    id:newId, name, phase, desc:document.getElementById('new-desc').value.trim(),
+    assignee:document.getElementById('new-assignee').value.trim(),
+    start:dateToExcel(startStr), due:dateToExcel(dueStr),
+    status:document.getElementById('new-status').value,
+    priority:document.getElementById('new-priority').value,
+    deps:document.getElementById('new-deps').value.trim(),
+    notes:document.getElementById('new-notes').value.trim(),
+  });
+  save(); closeAddModal(); refresh(); toast(`✅ Task ${newId} added — "${name}"`);
+}
+
+// --- SHARE ---
+function handleShare(){
+  try{
+    const enc=btoa(unescape(encodeURIComponent(JSON.stringify(tasks))));
+    const url=location.href.split('?')[0]+'?data='+enc;
+    if(url.length<8000){ navigator.clipboard.writeText(url).then(()=>toast('🔗 Shareable link copied!')); }
+    else { toast('📋 Share this HTML file directly — data auto-saves in browser'); }
+  }catch(e){ toast('📋 Share this HTML file directly'); }
+}
+
+// --- TOAST ---
+function toast(msg,type){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.borderLeftColor=type==='warn'?'var(--yellow)':'var(--green)';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3500);
+}
+
+// --- REFRESH ALL ---
+function refresh(){ updateStats(); renderPhase(); renderMilestones(); renderBanner(); renderTasks(); }
+
+// Load URL param
+(function(){
+  const p=new URLSearchParams(location.search);
+  if(p.has('data')){ try{ tasks=JSON.parse(decodeURIComponent(escape(atob(p.get('data'))))); }catch(e){} }
+})();
+
+document.getElementById('taskModal').addEventListener('click',function(e){ if(e.target===this)closeModal(); });
+document.getElementById('addTaskModal').addEventListener('click',function(e){ if(e.target===this)closeAddModal(); });
+
+refresh();
+</script>
+</body>
+</html>
